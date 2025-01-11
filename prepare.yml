@@ -1,0 +1,42 @@
+# Lenovo helpers
+---
+- name: Prepare Lenovo
+  hosts: localhost
+  become: false
+  gather_facts: false
+  vars:
+    DIR_DOWNLOADS: "{{ lookup('env', 'HOME') }}/Downloads"
+    FILENAME: "n3vur09w.iso"
+    # https://pcsupport.lenovo.com/es/en/products/laptops-and-netbooks/thinkpad-p-series-laptops/thinkpad-p16v-gen-1-type-21fe-21ff/21ff/21ffs02h2e/pf50sf7x/downloads/driver-list/component?name=BIOS%2FUEFI
+    #CHECKSUM: "93c304953e09875cc5019a63f5c29744e34edfe9b17a3fd27ad9cf8287c9cf2e"  # Initial from 
+    CHECKSUM: "9c29739a9232ae34cc1ce4dc5fac21798fbebcd846c8964797a09908233ea1a8"
+  tasks:
+  - name: Download BIOS bootable ISO image
+    ansible.builtin.shell: |
+      set -e
+
+      # $1 the line number where the error happens
+      function on_error {
+        echo "error: on_error at line $1" >&2
+      }
+
+      trap 'on_error $LINENO' ERR
+
+      URL="https://download.lenovo.com/pccbbs/mobiles/{{ FILENAME }}"
+      curl -sL -o "{{ DIR_DOWNLOADS }}/{{ FILENAME }}" "${URL}"
+      sha256sum "{{ DIR_DOWNLOADS }}/{{ FILENAME }}"
+
+      CURRENT_CHECKSUM="$(sha256sum "{{ DIR_DOWNLOADS }}/{{ FILENAME }}" | awk '{ print $1 }')"
+      if [ "${CURRENT_CHECKSUM}" != "{{ CHECKSUM }}" ]; then
+        echo "Expected: {{ CHECKSUM }}"
+        echo "Got: ${CURRENT_CHECKSUM}"
+        exit 2
+      fi
+
+  - name: Reminders
+    debug:
+      msg: |
+        - Run 'sudo fdisk -l' to locate your USB device.
+        - Flash ISO by: 'dd bs=4M if="{{ DIR_DOWNLOADS }}/{{ FILENAME }}" of=/dev/sdx status=progress oflag=sync'
+          update /dev/sdx with your USB device
+
