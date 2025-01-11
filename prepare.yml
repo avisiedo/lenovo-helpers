@@ -36,7 +36,12 @@
   - name: Reminders
     debug:
       msg: |
+        - Read ThinkPad P16v Gen 1 Linux - User Guide at:
+          https://download.lenovo.com/pccbbs/mobiles_pdf/p16v_gen1_linux_ug.pdf
+        - Check your BIOS version by: 'sudo dmidecode --type 0'
+        - Read notes at: https://download.lenovo.com/pccbbs/mobiles/n3vur09w.html
         - Run 'sudo fdisk -l' to locate your USB device.
         - Flash ISO by: 'dd bs=4M if="{{ DIR_DOWNLOADS }}/{{ FILENAME }}" of=/dev/sdx status=progress oflag=sync'
-          update /dev/sdx with your USB device
+          update /dev/sdx with your USB device.
+        - Boot your machine using the fresh new bootable USB.
 
